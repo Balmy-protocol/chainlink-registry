@@ -11,12 +11,12 @@ contract ChainlinkRegistry is Governable, IChainlinkRegistry {
   constructor(address _governor) Governable(_governor) {}
 
   function setFeed(
-    address _quote,
     address _base,
+    address _quote,
     address _feed
   ) external onlyGovernor {
-    if (address(_quote) == address(0) || address(_base) == address(0)) revert ZeroAddress();
-    feed[_quote][_base] = _feed;
-    emit FeedSet(_quote, _base, _feed);
+    if (address(_base) == address(0) || address(_quote) == address(0)) revert ZeroAddress();
+    feed[_base][_quote] = _feed;
+    emit FeedSet(_base, _quote, _feed);
   }
 }

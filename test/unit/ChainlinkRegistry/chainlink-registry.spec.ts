@@ -34,7 +34,7 @@ contract('ChainlinkRegistry', () => {
   });
 
   describe('setFeed', () => {
-    when('zero address is sent for quote address', () => {
+    when('zero address is sent for base address', () => {
       then('reverts with message', async () => {
         await behaviours.txShouldRevertWithMessage({
           contract: registry.connect(governor),
@@ -44,7 +44,7 @@ contract('ChainlinkRegistry', () => {
         });
       });
     });
-    when('zero address is sent for base address', () => {
+    when('zero address is sent for quote address', () => {
       then('reverts with message', async () => {
         await behaviours.txShouldRevertWithMessage({
           contract: registry.connect(governor),
