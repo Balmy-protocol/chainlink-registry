@@ -4,7 +4,6 @@ pragma solidity >=0.8.7 <0.9.0;
 import './utils/IGovernable.sol';
 
 interface IChainlinkRegistry is IGovernable {
-  
   /// @notice Thrown when one of the parameters is a zero address
   error ZeroAddress();
 
@@ -24,5 +23,9 @@ interface IChainlinkRegistry is IGovernable {
   /// @param _quote The quote asset address
   /// @param _base The base asset address
   /// @param _base The feed's address (could be the zero address) to delete a feed
-  function setFeed(address _quote, address _base, address _feed) external;
+  function setFeed(
+    address _quote,
+    address _base,
+    address _feed
+  ) external;
 }
