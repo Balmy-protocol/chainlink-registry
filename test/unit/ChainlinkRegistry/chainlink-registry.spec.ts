@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { behaviours, constants } from '@test-utils';
 import { contract, given, then, when } from '@test-utils/bdd';
 import { snapshot } from '@test-utils/evm';
-import { AggregatorV3Interface, ChainlinkRegistry, ChainlinkRegistry__factory } from '@typechained';
+import { AggregatorV3Interface, ChainlinkRegistry, ChainlinkRegistry__factory, IERC20 } from '@typechained';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signers';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
@@ -18,6 +18,7 @@ contract('ChainlinkRegistry', () => {
   let governor: SignerWithAddress;
   let feed: FakeContract<AggregatorV3Interface>;
   let registry: ChainlinkRegistry;
+  let token: FakeContract<IERC20>;
   let snapshotId: string;
 
   before('Setup accounts and contracts', async () => {
@@ -27,6 +28,8 @@ contract('ChainlinkRegistry', () => {
     );
     registry = await factory.deploy(governor.address);
     feed = await smock.fake('AggregatorV3Interface');
+    token = await smock.fake('IERC20');
+    token.transfer.returns(true);
     snapshotId = await snapshot.take();
   });
 
@@ -84,6 +87,15 @@ contract('ChainlinkRegistry', () => {
       contract: () => registry,
       funcAndSignature: 'setFeedProxy',
       params: () => [constants.NOT_ZERO_ADDRESS, constants.NOT_ZERO_ADDRESS, constants.NOT_ZERO_ADDRESS],
+      governor: () => governor,
+    });
+  });
+
+  describe('sendDust', () => {
+    behaviours.shouldBeExecutableOnlyByGovernor({
+      contract: () => registry,
+      funcAndSignature: 'sendDust',
+      params: () => [constants.NOT_ZERO_ADDRESS, token.address, 2000],
       governor: () => governor,
     });
   });
