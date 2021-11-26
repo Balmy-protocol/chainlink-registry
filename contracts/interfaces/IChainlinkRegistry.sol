@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.7 <0.9.0;
 
-import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol';
 import './utils/IGovernable.sol';
 
 interface IChainlinkRegistry is IGovernable {
@@ -22,7 +22,7 @@ interface IChainlinkRegistry is IGovernable {
   /// @param _base The base asset address
   /// @param _quote The quote asset address
   /// @return The feed's address
-  function getFeedProxy(address _base, address _quote) external view returns (AggregatorV3Interface);
+  function getFeedProxy(address _base, address _quote) external view returns (AggregatorV2V3Interface);
 
   /// @notice Sets a proxy feed for a specific quote and base
   /// @param _base The base asset address
