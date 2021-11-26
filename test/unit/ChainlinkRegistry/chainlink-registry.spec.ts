@@ -60,7 +60,7 @@ contract('ChainlinkRegistry', () => {
         tx = await registry.connect(governor).setFeed(LINK, USD, feed.address);
       });
       then('it is set correctly', async () => {
-        expect(await registry.feed(LINK, USD)).to.equal(feed.address);
+        expect(await registry.getFeed(LINK, USD)).to.equal(feed.address);
       });
       then('event is emitted', async () => {
         await expect(tx).to.emit(registry, 'FeedSet').withArgs(LINK, USD, feed.address);
@@ -72,8 +72,8 @@ contract('ChainlinkRegistry', () => {
         await registry.connect(governor).setFeed(LINK, USD, feed.address);
         tx = await registry.connect(governor).setFeed(LINK, USD, constants.ZERO_ADDRESS);
       });
-      then('it is set correctly', async () => {
-        expect(await registry.feed(LINK, USD)).to.equal(constants.ZERO_ADDRESS);
+      then('feed is removed correctly', async () => {
+        await expect(registry.getFeed(LINK, USD)).to.be.revertedWith('FeedNotFound');
       });
       then('event is emitted', async () => {
         await expect(tx).to.emit(registry, 'FeedSet').withArgs(LINK, USD, constants.ZERO_ADDRESS);
