@@ -9,13 +9,13 @@ contract ChainlinkRegistry is Governable, IChainlinkRegistry {
 
   constructor(address _governor) Governable(_governor) {}
 
-  function getFeed(address _base, address _quote) external view returns (AggregatorV3Interface) {
+  function getFeedProxy(address _base, address _quote) external view returns (AggregatorV3Interface) {
     address _feed = _feeds[_base][_quote];
     if (_feed == address(0)) revert FeedNotFound();
     return AggregatorV3Interface(_feed);
   }
 
-  function setFeed(
+  function setFeedProxy(
     address _base,
     address _quote,
     address _feed

@@ -17,18 +17,18 @@ interface IChainlinkRegistry is IGovernable {
   /// @param feed The feed address
   event FeedSet(address base, address quote, address feed);
 
-  /// @notice Returns the feed for a specific quote and base
+  /// @notice Returns the proxy feed for a specific quote and base
   /// @dev Will revert with `FeedNotFound` if no feed is found for the given base and quote
   /// @param _base The base asset address
   /// @param _quote The quote asset address
   /// @return The feed's address
-  function getFeed(address _base, address _quote) external view returns (AggregatorV3Interface);
+  function getFeedProxy(address _base, address _quote) external view returns (AggregatorV3Interface);
 
-  /// @notice Sets a feed for a specific quote and base
+  /// @notice Sets a proxy feed for a specific quote and base
   /// @param _base The base asset address
   /// @param _quote The quote asset address
   /// @param _feed The feed's address (could be the zero address to delete a feed)
-  function setFeed(
+  function setFeedProxy(
     address _base,
     address _quote,
     address _feed
