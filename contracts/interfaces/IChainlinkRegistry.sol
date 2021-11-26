@@ -3,8 +3,9 @@ pragma solidity >=0.8.7 <0.9.0;
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol';
 import './utils/IGovernable.sol';
+import './utils/ICollectableDust.sol';
 
-interface IChainlinkRegistry is IGovernable {
+interface IChainlinkRegistry is IGovernable, ICollectableDust {
   /// @notice Thrown when one of the parameters is a zero address
   error ZeroAddress();
 
