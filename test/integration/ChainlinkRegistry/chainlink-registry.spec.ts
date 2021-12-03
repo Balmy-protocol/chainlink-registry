@@ -52,7 +52,7 @@ describe('ChainlinkRegistry', () => {
       let feed: AggregatorV2V3Interface;
       given(async () => {
         feed = await ethers.getContractAt(FEED_ABI, feedAddress);
-        await registry.connect(governor).setFeedProxy(base.address, quote.address, feedAddress);
+        await registry.connect(governor).setFeedProxies([{ base: base.address, quote: quote.address, feed: feedAddress }]);
       });
       for (const method of REDIRECT_FUNCTIONS) {
         whenFunctionIsCalledThenResultIsTheSameInTheFeedAndTheRegistry({

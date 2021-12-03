@@ -6,17 +6,22 @@ import './utils/IGovernable.sol';
 import './utils/ICollectableDust.sol';
 
 interface IChainlinkRegistry is IGovernable, ICollectableDust {
+  /// @notice A Chainlink feed
+  struct Feed {
+    address base;
+    address quote;
+    address feed;
+  }
+
   /// @notice Thrown when one of the parameters is a zero address
   error ZeroAddress();
 
   /// @notice Thrown when trying to execute a call with a base and quote that don't have a feed assigned
   error FeedNotFound();
 
-  /// @notice Emitted when a feed is set
-  /// @param base The base asset address
-  /// @param quote The quote asset address
-  /// @param feed The feed address
-  event FeedSet(address base, address quote, address feed);
+  /// @notice Emitted when fees are modified
+  /// @param feeds The feeds that were modified
+  event FeedsModified(Feed[] feeds);
 
   /// @notice Returns the proxy feed for a specific quote and base
   /// @dev Will revert with `FeedNotFound` if no feed is found for the given base and quote
@@ -66,13 +71,8 @@ interface IChainlinkRegistry is IGovernable, ICollectableDust {
       uint80 _answeredInRound
     );
 
-  /// @notice Sets a proxy feed for a specific quote and base
-  /// @param _base The base asset address
-  /// @param _quote The quote asset address
-  /// @param _feed The feed's address (could be the zero address to delete a feed)
-  function setFeedProxy(
-    address _base,
-    address _quote,
-    address _feed
-  ) external;
+  /// @notice Sets or deletes feeds for specific quotes and bases
+  /// @dev A feed's address could be set to the zero address to delete a feed
+  /// @param _feeds The feeds to set
+  function setFeedProxies(Feed[] calldata _feeds) external;
 }

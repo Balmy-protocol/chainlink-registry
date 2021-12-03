@@ -10,24 +10,29 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
 
   constructor(address _governor) Governable(_governor) {}
 
+  /// @inheritdoc IChainlinkRegistry
   function getFeedProxy(address _base, address _quote) public view returns (AggregatorV2V3Interface) {
     address _feed = _feeds[_base][_quote];
     if (_feed == address(0)) revert FeedNotFound();
     return AggregatorV2V3Interface(_feed);
   }
 
+  /// @inheritdoc IChainlinkRegistry
   function decimals(address _base, address _quote) external view returns (uint8) {
     return getFeedProxy(_base, _quote).decimals();
   }
 
+  /// @inheritdoc IChainlinkRegistry
   function description(address _base, address _quote) external view returns (string memory) {
     return getFeedProxy(_base, _quote).description();
   }
 
+  /// @inheritdoc IChainlinkRegistry
   function version(address _base, address _quote) external view returns (uint256) {
     return getFeedProxy(_base, _quote).version();
   }
 
+  /// @inheritdoc IChainlinkRegistry
   function latestRoundData(address _base, address _quote)
     external
     view
@@ -42,14 +47,13 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
     return getFeedProxy(_base, _quote).latestRoundData();
   }
 
-  function setFeedProxy(
-    address _base,
-    address _quote,
-    address _feed
-  ) external onlyGovernor {
-    if (address(_base) == address(0) || address(_quote) == address(0)) revert ZeroAddress();
-    _feeds[_base][_quote] = _feed;
-    emit FeedSet(_base, _quote, _feed);
+  /// @inheritdoc IChainlinkRegistry
+  function setFeedProxies(Feed[] calldata _proxies) external onlyGovernor {
+    for (uint256 i; i < _proxies.length; i++) {
+      if (address(_proxies[i].base) == address(0) || address(_proxies[i].quote) == address(0)) revert ZeroAddress();
+      _feeds[_proxies[i].base][_proxies[i].quote] = _proxies[i].feed;
+    }
+    emit FeedsModified(_proxies);
   }
 
   function sendDust(

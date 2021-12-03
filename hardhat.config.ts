@@ -58,6 +58,11 @@ const networks: NetworksUserConfig = process.env.TEST
         accounts: accounts('mainnet'),
         tags: ['production'],
       },
+      optimismkovan: {
+        url: 'https://kovan-optimistic.etherscan.io',
+        accounts: accounts('optimistickovan'),
+        tags: ['staging'],
+      },
     };
 
 const config: HardhatUserConfig = {

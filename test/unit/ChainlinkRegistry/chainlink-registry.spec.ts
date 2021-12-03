@@ -8,6 +8,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signers';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 import { BigNumber } from 'ethers';
+import { readArgFromEventOrFail } from '@test-utils/event-utils';
 
 chai.use(smock.matchers);
 
@@ -37,13 +38,13 @@ contract('ChainlinkRegistry', () => {
     await snapshot.revert(snapshotId);
   });
 
-  describe('setFeedProxy', () => {
+  describe('setFeedProxies', () => {
     when('zero address is sent for base address', () => {
       then('reverts with message', async () => {
         await behaviours.txShouldRevertWithMessage({
           contract: registry.connect(governor),
-          func: 'setFeedProxy',
-          args: [constants.ZERO_ADDRESS, USD, feed.address],
+          func: 'setFeedProxies',
+          args: [[{ base: constants.ZERO_ADDRESS, quote: USD, feed: feed.address }]],
           message: 'ZeroAddress',
         });
       });
@@ -52,8 +53,8 @@ contract('ChainlinkRegistry', () => {
       then('reverts with message', async () => {
         await behaviours.txShouldRevertWithMessage({
           contract: registry.connect(governor),
-          func: 'setFeedProxy',
-          args: [LINK, constants.ZERO_ADDRESS, feed.address],
+          func: 'setFeedProxies',
+          args: [[{ base: LINK, quote: constants.ZERO_ADDRESS, feed: feed.address }]],
           message: 'ZeroAddress',
         });
       });
@@ -61,34 +62,41 @@ contract('ChainlinkRegistry', () => {
     when('setting a feed', () => {
       let tx: TransactionResponse;
       given(async () => {
-        tx = await registry.connect(governor).setFeedProxy(LINK, USD, feed.address);
+        tx = await registry.connect(governor).setFeedProxies([{ base: LINK, quote: USD, feed: feed.address }]);
       });
       then('it is set correctly', async () => {
         expect(await registry.getFeedProxy(LINK, USD)).to.equal(feed.address);
       });
       then('event is emitted', async () => {
-        await expect(tx).to.emit(registry, 'FeedSet').withArgs(LINK, USD, feed.address);
+        await expectEventToHaveBeenEmitted(tx, feed.address);
       });
     });
     when('removing a feed', () => {
       let tx: TransactionResponse;
       given(async () => {
-        await registry.connect(governor).setFeedProxy(LINK, USD, feed.address);
-        tx = await registry.connect(governor).setFeedProxy(LINK, USD, constants.ZERO_ADDRESS);
+        await registry.connect(governor).setFeedProxies([{ base: LINK, quote: USD, feed: feed.address }]);
+        tx = await registry.connect(governor).setFeedProxies([{ base: LINK, quote: USD, feed: constants.ZERO_ADDRESS }]);
       });
       then('feed is removed correctly', async () => {
         await expect(registry.getFeedProxy(LINK, USD)).to.be.revertedWith('FeedNotFound');
       });
       then('event is emitted', async () => {
-        await expect(tx).to.emit(registry, 'FeedSet').withArgs(LINK, USD, constants.ZERO_ADDRESS);
+        await expectEventToHaveBeenEmitted(tx, constants.ZERO_ADDRESS);
       });
     });
     behaviours.shouldBeExecutableOnlyByGovernor({
       contract: () => registry,
-      funcAndSignature: 'setFeedProxy',
-      params: () => [constants.NOT_ZERO_ADDRESS, constants.NOT_ZERO_ADDRESS, constants.NOT_ZERO_ADDRESS],
+      funcAndSignature: 'setFeedProxies',
+      params: () => [[{ base: constants.NOT_ZERO_ADDRESS, quote: constants.NOT_ZERO_ADDRESS, feed: constants.NOT_ZERO_ADDRESS }]],
       governor: () => governor,
     });
+    async function expectEventToHaveBeenEmitted(tx: TransactionResponse, feed: string) {
+      const feeds: { base: string; quote: string; feed: string }[] = await readArgFromEventOrFail(tx, 'FeedsModified', 'feeds');
+      expect(feeds.length).to.equal(1);
+      expect(feeds[0].base).to.equal(LINK);
+      expect(feeds[0].quote).to.equal(USD);
+      expect(feeds[0].feed).to.equal(feed);
+    }
   });
 
   describe('sendDust', () => {
@@ -145,7 +153,7 @@ contract('ChainlinkRegistry', () => {
       });
       when('feed registry is set', () => {
         given(async () => {
-          await registry.connect(governor).setFeedProxy(LINK, USD, feed.address);
+          await registry.connect(governor).setFeedProxies([{ base: LINK, quote: USD, feed: feed.address }]);
           feed[method].returns(returnValue);
         });
         then('return value from feed proxy is returned through registry', async () => {
