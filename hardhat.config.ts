@@ -59,9 +59,10 @@ const networks: NetworksUserConfig = process.env.TEST
         tags: ['production'],
       },
       optimismkovan: {
-        url: 'https://kovan-optimistic.etherscan.io',
+        url: 'https://kovan.optimism.io',
         accounts: accounts('optimistickovan'),
         tags: ['staging'],
+        chainId: 69,
       },
     };
 
