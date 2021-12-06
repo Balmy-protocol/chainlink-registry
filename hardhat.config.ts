@@ -64,6 +64,11 @@ const networks: NetworksUserConfig = process.env.TEST
         tags: ['staging'],
         chainId: 69,
       },
+      optimism: {
+        url: 'https://mainnet.optimism.io',
+        accounts: accounts('optimism'),
+        tags: ['production'],
+      },
     };
 
 const config: HardhatUserConfig = {
@@ -73,8 +78,7 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
-    governor: 1,
-    feeRecipient: 2,
+    governor: '0x1a00e1E311009E56e3b0B9Ed6F86f5Ce128a1C01',
   },
   networks,
   solidity: {

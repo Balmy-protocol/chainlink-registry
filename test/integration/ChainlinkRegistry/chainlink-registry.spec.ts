@@ -40,6 +40,7 @@ describe('ChainlinkRegistry', () => {
     registry = await ethers.getContract('FeedRegistry');
     const namedAccounts = await getNamedAccounts();
     governor = await wallet.impersonate(namedAccounts.governor);
+    await ethers.provider.send('hardhat_setBalance', [namedAccounts.governor, '0xffffffffffffffff']);
     snapshotId = await snapshot.take();
   });
 
