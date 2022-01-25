@@ -55,7 +55,7 @@ The plugin `hardhat-deploy` is used to deploy contracts.
 
 ## Licensing
 
-The primary license for DCA V2 Periphery is the GNU General Public License v2.0 (`GPL-2.0-or-later`), see [`LICENSE`](./LICENSE).
+The primary license for this repository is the GNU General Public License v2.0 (`GPL-2.0-or-later`), see [`LICENSE`](./LICENSE).
 
 ### Exceptions
 
