@@ -34,6 +34,7 @@
     "compile": "npx hardhat compile",
     "deploy": "npx hardhat deploy",
     "sizer": "TEST=true hardhat compile && TEST=true npx hardhat size-contracts",
+    "verify": "npx hardhat run scripts/verify-contracts.ts",
     "coverage": "npx hardhat coverage",
     "fork": "FORK=true npx hardhat node",
     "fork:script": "FORK=true npx hardhat run",
