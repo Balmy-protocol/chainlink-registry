@@ -58,16 +58,20 @@ const networks: NetworksUserConfig = process.env.TEST
         accounts: accounts('mainnet'),
         tags: ['production'],
       },
-      optimismkovan: {
-        url: 'https://kovan.optimism.io',
-        accounts: accounts('optimistickovan'),
-        tags: ['staging'],
-        chainId: 69,
-      },
       optimism: {
         url: 'https://mainnet.optimism.io',
         accounts: accounts('optimism'),
         tags: ['production'],
+      },
+      'optimism-kovan': {
+        url: 'https://kovan.optimism.io',
+        accounts: accounts('optimism-kovan'),
+        tags: ['staging'],
+      },
+      mumbai: {
+        url: 'https://rpc-mumbai.matic.today',
+        accounts: accounts('mumbai'),
+        tags: ['staging'],
       },
     };
 

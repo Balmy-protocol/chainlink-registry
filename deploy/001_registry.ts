@@ -8,6 +8,7 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
     contract: 'contracts/ChainlinkRegistry/ChainlinkRegistry.sol:ChainlinkRegistry',
     from: deployer,
     args: [governor],
+    log: true,
   });
 };
 
