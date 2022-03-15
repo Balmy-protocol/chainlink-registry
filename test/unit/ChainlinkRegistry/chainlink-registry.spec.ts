@@ -4,7 +4,7 @@ import { behaviours, constants } from '@test-utils';
 import { contract, given, then, when } from '@test-utils/bdd';
 import { snapshot } from '@test-utils/evm';
 import { AggregatorV3Interface, ChainlinkRegistry, ChainlinkRegistry__factory, IERC20 } from '@typechained';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 import { BigNumber } from 'ethers';
