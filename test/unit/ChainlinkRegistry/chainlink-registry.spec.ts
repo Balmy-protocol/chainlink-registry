@@ -4,7 +4,7 @@ import { behaviours, constants } from '@test-utils';
 import { contract, given, then, when } from '@test-utils/bdd';
 import { snapshot } from '@test-utils/evm';
 import { AggregatorV3Interface, ChainlinkRegistry, ChainlinkRegistry__factory, IERC20 } from '@typechained';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
 import { BigNumber } from 'ethers';
@@ -133,12 +133,12 @@ contract('ChainlinkRegistry', () => {
    * However, when the method is called and there is a feed set, then the return value is just redirected
    * from the feed, to the registry's caller
    */
-  function redirectTest<Key extends keyof Functions>({
+  function redirectTest<Key extends keyof Functions, ReturnValue extends Awaited<ReturnType<Functions[Key]>>>({
     method,
     returnsWhenMocked: returnValue,
   }: {
     method: Key;
-    returnsWhenMocked: Awaited<ReturnType<Functions[Key]>>;
+    returnsWhenMocked: Arrayed<ReturnValue> | ReturnValue;
   }) {
     describe(method, () => {
       when('feed proxy is not set', () => {
@@ -164,6 +164,7 @@ contract('ChainlinkRegistry', () => {
     });
   }
   type Keys = keyof AggregatorV3Interface['functions'] & keyof ChainlinkRegistry['functions'];
-  type Functions = Pick<AggregatorV3Interface & ChainlinkRegistry, Keys>;
+  type Functions = Pick<AggregatorV3Interface['functions'] & ChainlinkRegistry['functions'], Keys>;
   type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
+  type Arrayed<T> = T extends Array<infer U> ? U : T;
 });
