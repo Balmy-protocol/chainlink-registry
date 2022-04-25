@@ -3,7 +3,6 @@ import { JsonRpcSigner } from '@ethersproject/providers';
 import { wallet } from '@test-utils';
 import evm, { snapshot } from '@test-utils/evm';
 import { AggregatorV2V3Interface, ChainlinkRegistry } from '@typechained';
-import { getNodeUrl } from '@utils/network';
 import FEED_ABI from '@chainlink/contracts/abi/v0.8/AggregatorV3Interface.json';
 import { given, then, when } from '@test-utils/bdd';
 import { expect } from 'chai';
@@ -11,18 +10,18 @@ import { expect } from 'chai';
 type Keys = keyof AggregatorV2V3Interface['functions'] & keyof ChainlinkRegistry['functions'];
 type Token = { address: string; name: string };
 
-const LINK = { address: '0x514910771AF9Ca656af840dff83E8264EcF986CA', name: 'LINK' };
-const MANA = { address: '0x0f5d2fb29fb7d3cfee444a200298f468908cc942', name: 'MANA' };
-const FLOKI = { address: '0x43f11c02439e2736800433b4594994bd43cd066d', name: 'FLOKI' };
+const LINK = { address: '0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39', name: 'LINK' };
+const AAVE = { address: '0xD6DF932A45C0f255f85145f286eA0b292B21C90B', name: 'AAVE' };
+const BADGER = { address: '0x1fcbe5937b0cc2adf69772d228fa4205acf4d9b2', name: 'BADGER' };
 
 const USD = { address: '0x0000000000000000000000000000000000000348', name: 'USD' };
 const ETH = { address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', name: 'ETH' };
 
 const PAIRS = [
-  { base: LINK, quote: USD, feed: '0xDC530D9457755926550b59e8ECcdaE7624181557' },
-  { base: MANA, quote: ETH, feed: '0x82A44D92D6c329826dc557c5E1Be6ebeC5D5FeB9' },
-  { base: FLOKI, quote: USD, feed: '0xfBAFc1F5b1b37CC0763780453d1eA635520708f2' },
-  { base: LINK, quote: ETH, feed: '0xDC530D9457755926550b59e8ECcdaE7624181557' },
+  { base: LINK, quote: USD, feed: '0xd9FFdb71EbE7496cC440152d43986Aae0AB76665' },
+  { base: AAVE, quote: ETH, feed: '0xbE23a3AA13038CfC28aFd0ECe4FdE379fE7fBfc4' },
+  { base: BADGER, quote: USD, feed: '0xF626964Ba5e81405f47e8004F0b276Bb974742B5' },
+  { base: LINK, quote: ETH, feed: '0xb77fa460604b9C6435A235D057F7D319AC83cb53' },
 ];
 
 const REDIRECT_FUNCTIONS: Keys[] = ['decimals', 'description', 'version', 'latestRoundData'];
@@ -34,9 +33,14 @@ describe('ChainlinkRegistry', () => {
 
   before(async () => {
     await evm.reset({
-      jsonRpcUrl: getNodeUrl('mainnet'),
+      network: 'polygon',
+      skipHardhatDeployFork: true,
     });
-    await deployments.fixture('FeedRegistry', { keepExistingDeployments: false });
+    await deployments.run(['FeedRegistry'], {
+      resetMemory: true,
+      deletePreviousDeployments: false,
+      writeDeploymentsToFiles: false,
+    });
     registry = await ethers.getContract('FeedRegistry');
     const namedAccounts = await getNamedAccounts();
     governor = await wallet.impersonate(namedAccounts.governor);

@@ -17,22 +17,22 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
     return AggregatorV2V3Interface(_feed);
   }
 
-  /// @inheritdoc IChainlinkRegistry
+  /// @inheritdoc IFeedRegistry
   function decimals(address _base, address _quote) external view returns (uint8) {
     return getFeedProxy(_base, _quote).decimals();
   }
 
-  /// @inheritdoc IChainlinkRegistry
+  /// @inheritdoc IFeedRegistry
   function description(address _base, address _quote) external view returns (string memory) {
     return getFeedProxy(_base, _quote).description();
   }
 
-  /// @inheritdoc IChainlinkRegistry
+  /// @inheritdoc IFeedRegistry
   function version(address _base, address _quote) external view returns (uint256) {
     return getFeedProxy(_base, _quote).version();
   }
 
-  /// @inheritdoc IChainlinkRegistry
+  /// @inheritdoc IFeedRegistry
   function latestRoundData(address _base, address _quote)
     external
     view
