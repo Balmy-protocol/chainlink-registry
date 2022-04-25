@@ -5,31 +5,7 @@ import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol';
 import './utils/IGovernable.sol';
 import './utils/ICollectableDust.sol';
 
-interface IChainlinkRegistry is IGovernable, ICollectableDust {
-  /// @notice A Chainlink feed
-  struct Feed {
-    address base;
-    address quote;
-    address feed;
-  }
-
-  /// @notice Thrown when one of the parameters is a zero address
-  error ZeroAddress();
-
-  /// @notice Thrown when trying to execute a call with a base and quote that don't have a feed assigned
-  error FeedNotFound();
-
-  /// @notice Emitted when fees are modified
-  /// @param feeds The feeds that were modified
-  event FeedsModified(Feed[] feeds);
-
-  /// @notice Returns the proxy feed for a specific quote and base
-  /// @dev Will revert with `FeedNotFound` if no feed is found for the given base and quote
-  /// @param _base The base asset address
-  /// @param _quote The quote asset address
-  /// @return The feed's address
-  function getFeedProxy(address _base, address _quote) external view returns (AggregatorV2V3Interface);
-
+interface IFeedRegistry {
   /// @notice Returns the number of decimals present in the response value.
   /// @dev Will revert with `FeedNotFound` if no feed is found for the given base and quote
   /// @param _base The base asset address
@@ -70,6 +46,32 @@ interface IChainlinkRegistry is IGovernable, ICollectableDust {
       uint256 _updatedAt,
       uint80 _answeredInRound
     );
+}
+
+interface IChainlinkRegistry is IFeedRegistry, IGovernable, ICollectableDust {
+  /// @notice A Chainlink feed
+  struct Feed {
+    address base;
+    address quote;
+    address feed;
+  }
+
+  /// @notice Thrown when one of the parameters is a zero address
+  error ZeroAddress();
+
+  /// @notice Thrown when trying to execute a call with a base and quote that don't have a feed assigned
+  error FeedNotFound();
+
+  /// @notice Emitted when fees are modified
+  /// @param feeds The feeds that were modified
+  event FeedsModified(Feed[] feeds);
+
+  /// @notice Returns the proxy feed for a specific quote and base
+  /// @dev Will revert with `FeedNotFound` if no feed is found for the given base and quote
+  /// @param _base The base asset address
+  /// @param _quote The quote asset address
+  /// @return The feed's address
+  function getFeedProxy(address _base, address _quote) external view returns (AggregatorV2V3Interface);
 
   /// @notice Sets or deletes feeds for specific quotes and bases
   /// @dev A feed's address could be set to the zero address to delete a feed
