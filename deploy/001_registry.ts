@@ -10,11 +10,16 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
 
   switch (network) {
     case 'mainnet':
-    case 'kovan':
     case 'hardhat':
       await hre.deployments.save('FeedRegistry', {
         abi: IFeedRegistry__factory.abi,
         address: '0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf',
+      });
+      break;
+    case 'kovan':
+      await hre.deployments.save('FeedRegistry', {
+        abi: IFeedRegistry__factory.abi,
+        address: '0xAa7F6f7f507457a1EE157fE97F6c7DB2BEec5cD0',
       });
       break;
     default:
