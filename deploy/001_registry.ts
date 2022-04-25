@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { networkBeingForked } from '@test-utils/evm';
-import { IFeedRegistry__factory } from '@typechained';
+import { IFeedRegistry__factory } from '../typechained';
 
 const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer, governor } = await hre.getNamedAccounts();
