@@ -6,30 +6,52 @@ import '../utils/Governable.sol';
 import '../utils/CollectableDust.sol';
 
 contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
-  mapping(address => mapping(address => address)) internal _feeds;
+  mapping(bytes32 => AssignedFeed) internal _feeds;
 
   constructor(address _governor) Governable(_governor) {}
 
   /// @inheritdoc IChainlinkRegistry
-  function getFeedProxy(address _base, address _quote) public view returns (AggregatorV2V3Interface) {
-    address _feed = _feeds[_base][_quote];
-    if (_feed == address(0)) revert FeedNotFound();
-    return AggregatorV2V3Interface(_feed);
+  function getAssignedFeed(address _base, address _quote) external view returns (AssignedFeed memory) {
+    return _feeds[_getKey(_base, _quote)];
+  }
+
+  /// @inheritdoc IChainlinkRegistry
+  function assignFeeds(Feed[] calldata _feedsToAssign) external onlyGovernor {
+    for (uint256 i; i < _feedsToAssign.length; i++) {
+      Feed memory _feed = _feedsToAssign[i];
+      if (address(_feed.base) == address(0) || address(_feed.quote) == address(0)) revert ZeroAddress();
+      _feeds[_getKey(_feed.base, _feed.quote)] = AssignedFeed(AggregatorV2V3Interface(_feed.feed), true);
+    }
+    emit FeedsModified(_feedsToAssign);
+  }
+
+  function sendDust(
+    address _to,
+    address _token,
+    uint256 _amount
+  ) external onlyGovernor {
+    _sendDust(_to, _token, _amount);
+  }
+
+  function _getAssignedFeedOrFail(address _base, address _quote) internal view returns (AggregatorV2V3Interface) {
+    AggregatorV2V3Interface _feed = _feeds[_getKey(_base, _quote)].feed;
+    if (address(_feed) == address(0)) revert FeedNotFound();
+    return _feed;
   }
 
   /// @inheritdoc IFeedRegistry
   function decimals(address _base, address _quote) external view returns (uint8) {
-    return getFeedProxy(_base, _quote).decimals();
+    return _getAssignedFeedOrFail(_base, _quote).decimals();
   }
 
   /// @inheritdoc IFeedRegistry
   function description(address _base, address _quote) external view returns (string memory) {
-    return getFeedProxy(_base, _quote).description();
+    return _getAssignedFeedOrFail(_base, _quote).description();
   }
 
   /// @inheritdoc IFeedRegistry
   function version(address _base, address _quote) external view returns (uint256) {
-    return getFeedProxy(_base, _quote).version();
+    return _getAssignedFeedOrFail(_base, _quote).version();
   }
 
   /// @inheritdoc IFeedRegistry
@@ -44,23 +66,10 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
       uint80
     )
   {
-    return getFeedProxy(_base, _quote).latestRoundData();
+    return _getAssignedFeedOrFail(_base, _quote).latestRoundData();
   }
 
-  /// @inheritdoc IChainlinkRegistry
-  function setFeedProxies(Feed[] calldata _proxies) external onlyGovernor {
-    for (uint256 i; i < _proxies.length; i++) {
-      if (address(_proxies[i].base) == address(0) || address(_proxies[i].quote) == address(0)) revert ZeroAddress();
-      _feeds[_proxies[i].base][_proxies[i].quote] = _proxies[i].feed;
-    }
-    emit FeedsModified(_proxies);
-  }
-
-  function sendDust(
-    address _to,
-    address _token,
-    uint256 _amount
-  ) external onlyGovernor {
-    _sendDust(_to, _token, _amount);
+  function _getKey(address _base, address _quote) internal pure returns (bytes32) {
+    return keccak256(abi.encodePacked(_base, _quote));
   }
 }
