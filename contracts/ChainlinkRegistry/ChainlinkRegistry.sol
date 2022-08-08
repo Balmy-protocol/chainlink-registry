@@ -17,7 +17,7 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
 
   /// @inheritdoc IChainlinkRegistry
   function assignFeeds(Feed[] calldata _feedsToAssign) external onlyGovernor {
-    for (uint256 i; i < _feedsToAssign.length; i++) {
+    for (uint256 i = 0; i < _feedsToAssign.length; i++) {
       Feed memory _feed = _feedsToAssign[i];
       if (address(_feed.base) == address(0) || address(_feed.quote) == address(0)) revert ZeroAddress();
       _feeds[_getKey(_feed.base, _feed.quote)] = AssignedFeed(AggregatorV2V3Interface(_feed.feed), true);
