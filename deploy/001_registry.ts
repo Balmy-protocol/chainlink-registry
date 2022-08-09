@@ -1,37 +1,27 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy/types';
-import { networkBeingForked } from '@test-utils/evm';
-import { IFeedRegistry__factory } from '../typechained';
+import { DeployFunction } from '@0xged/hardhat-deploy/types';
+import { bytecode } from '../artifacts/contracts/ChainlinkRegistry/ChainlinkRegistry.sol/ChainlinkRegistry.json';
+import { deployThroughDeterministicFactory } from '@mean-finance/deterministic-factory/utils/deployment';
 
 const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const { deployer, governor } = await hre.getNamedAccounts();
+  const { deployer, msig } = await hre.getNamedAccounts();
 
-  const network = hre.network.name !== 'hardhat' ? hre.network.name : networkBeingForked ?? hre.network.name;
-
-  switch (network) {
-    case 'mainnet':
-    case 'hardhat':
-      await hre.deployments.save('FeedRegistry', {
-        abi: IFeedRegistry__factory.abi,
-        address: '0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf',
-      });
-      break;
-    case 'kovan':
-      await hre.deployments.save('FeedRegistry', {
-        abi: IFeedRegistry__factory.abi,
-        address: '0xAa7F6f7f507457a1EE157fE97F6c7DB2BEec5cD0',
-      });
-      break;
-    default:
-      await hre.deployments.deploy('FeedRegistry', {
-        contract: 'contracts/ChainlinkRegistry/ChainlinkRegistry.sol:ChainlinkRegistry',
-        from: deployer,
-        args: [governor],
-        log: true,
-      });
-      break;
-  }
+  await deployThroughDeterministicFactory({
+    deployer,
+    name: 'ChainlinkFeedRegistry',
+    salt: 'MF-Chainlink-Feed-Registry-V1',
+    contract: 'contracts/ChainlinkRegistry/ChainlinkRegistry.sol:ChainlinkRegistry',
+    bytecode,
+    constructorArgs: {
+      types: ['address', 'address[]'],
+      values: [msig, [msig]],
+    },
+    log: !process.env.TEST,
+    overrides: {
+      gasLimit: 3_000_000,
+    },
+  });
 };
 
-deployFunction.tags = ['FeedRegistry'];
+deployFunction.tags = ['ChainlinkFeedRegistry'];
 export default deployFunction;

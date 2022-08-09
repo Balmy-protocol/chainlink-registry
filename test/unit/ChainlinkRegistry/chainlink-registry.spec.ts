@@ -16,18 +16,20 @@ contract('ChainlinkRegistry', () => {
   const LINK = '0xa36085F69e2889c224210F603D836748e7dC0088';
   const USD = '0x0000000000000000000000000000000000000348';
 
-  let governor: SignerWithAddress;
+  let superAdmin: SignerWithAddress, admin: SignerWithAddress;
   let feed: FakeContract<IAggregatorProxy>;
+  let factory: ChainlinkRegistry__factory;
   let registry: ChainlinkRegistry;
   let token: FakeContract<IERC20>;
+  let superAdminRole: string, adminRole: string;
   let snapshotId: string;
 
   before('Setup accounts and contracts', async () => {
-    [, governor] = await ethers.getSigners();
-    const factory: ChainlinkRegistry__factory = await ethers.getContractFactory(
-      'contracts/ChainlinkRegistry/ChainlinkRegistry.sol:ChainlinkRegistry'
-    );
-    registry = await factory.deploy(governor.address);
+    [, superAdmin, admin] = await ethers.getSigners();
+    factory = await ethers.getContractFactory('contracts/ChainlinkRegistry/ChainlinkRegistry.sol:ChainlinkRegistry');
+    registry = await factory.deploy(superAdmin.address, [admin.address]);
+    superAdminRole = await registry.SUPER_ADMIN_ROLE();
+    adminRole = await registry.ADMIN_ROLE();
     feed = await smock.fake('IAggregatorProxy');
     token = await smock.fake('IERC20');
     token.transfer.returns(true);
@@ -38,11 +40,41 @@ contract('ChainlinkRegistry', () => {
     await snapshot.revert(snapshotId);
   });
 
+  describe('constructor', () => {
+    when('super admin is zero address', () => {
+      then('tx is reverted with reason error', async () => {
+        await behaviours.deployShouldRevertWithMessage({
+          contract: factory,
+          args: [constants.ZERO_ADDRESS, []],
+          message: 'ZeroAddress',
+        });
+      });
+    });
+    when('all arguments are valid', () => {
+      then('super admin is set correctly', async () => {
+        const hasRole = await registry.hasRole(superAdminRole, superAdmin.address);
+        expect(hasRole).to.be.true;
+      });
+      then('initial admins are set correctly', async () => {
+        const hasRole = await registry.hasRole(adminRole, admin.address);
+        expect(hasRole).to.be.true;
+      });
+      then('super admin role is set as super admin role', async () => {
+        const admin = await registry.getRoleAdmin(superAdminRole);
+        expect(admin).to.equal(superAdminRole);
+      });
+      then('super admin role is set as admin role', async () => {
+        const admin = await registry.getRoleAdmin(adminRole);
+        expect(admin).to.equal(superAdminRole);
+      });
+    });
+  });
+
   describe('assignFeeds', () => {
     when('setting a feed', () => {
       let tx: TransactionResponse;
       given(async () => {
-        tx = await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
+        tx = await registry.connect(admin).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
       });
       then('it is set correctly', async () => {
         const assignedFeed = await registry.getAssignedFeed(LINK, USD);
@@ -56,7 +88,7 @@ contract('ChainlinkRegistry', () => {
     when('setting a feed that is not a proxy', () => {
       let tx: TransactionResponse;
       given(async () => {
-        tx = await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: registry.address }]);
+        tx = await registry.connect(admin).assignFeeds([{ base: LINK, quote: USD, feed: registry.address }]);
       });
       then('it is set correctly', async () => {
         const assignedFeed = await registry.getAssignedFeed(LINK, USD);
@@ -70,8 +102,8 @@ contract('ChainlinkRegistry', () => {
     when('removing a feed', () => {
       let tx: TransactionResponse;
       given(async () => {
-        await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
-        tx = await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: constants.ZERO_ADDRESS }]);
+        await registry.connect(admin).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
+        tx = await registry.connect(admin).assignFeeds([{ base: LINK, quote: USD, feed: constants.ZERO_ADDRESS }]);
       });
       then('feed is removed correctly', async () => {
         const assignedFeed = await registry.getAssignedFeed(LINK, USD);
@@ -82,11 +114,12 @@ contract('ChainlinkRegistry', () => {
         await expectEventToHaveBeenEmitted(tx, constants.ZERO_ADDRESS);
       });
     });
-    behaviours.shouldBeExecutableOnlyByGovernor({
+    behaviours.shouldBeExecutableOnlyByRole({
       contract: () => registry,
       funcAndSignature: 'assignFeeds',
       params: () => [[{ base: constants.NOT_ZERO_ADDRESS, quote: constants.NOT_ZERO_ADDRESS, feed: constants.NOT_ZERO_ADDRESS }]],
-      governor: () => governor,
+      role: () => adminRole,
+      addressWithRole: () => admin,
     });
     async function expectEventToHaveBeenEmitted(tx: TransactionResponse, feed: string) {
       const feeds: { base: string; quote: string; feed: string }[] = await readArgFromEventOrFail(tx, 'FeedsModified', 'feeds');
@@ -98,11 +131,12 @@ contract('ChainlinkRegistry', () => {
   });
 
   describe('sendDust', () => {
-    behaviours.shouldBeExecutableOnlyByGovernor({
+    behaviours.shouldBeExecutableOnlyByRole({
       contract: () => registry,
       funcAndSignature: 'sendDust',
       params: () => [constants.NOT_ZERO_ADDRESS, token.address, 2000],
-      governor: () => governor,
+      role: () => adminRole,
+      addressWithRole: () => admin,
     });
   });
 
@@ -151,7 +185,7 @@ contract('ChainlinkRegistry', () => {
       });
       when('feed is set', () => {
         given(async () => {
-          await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
+          await registry.connect(admin).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
           feed[method].returns(returnValue);
         });
         then('return value from feed is returned through registry', async () => {

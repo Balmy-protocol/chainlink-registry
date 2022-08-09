@@ -1,14 +1,26 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.7 <0.9.0;
 
+import '@openzeppelin/contracts/access/AccessControl.sol';
 import '../interfaces/IChainlinkRegistry.sol';
-import '../utils/Governable.sol';
 import '../utils/CollectableDust.sol';
 
-contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
+contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry {
+  bytes32 public constant SUPER_ADMIN_ROLE = keccak256('SUPER_ADMIN_ROLE');
+  bytes32 public constant ADMIN_ROLE = keccak256('ADMIN_ROLE');
+
   mapping(bytes32 => AssignedFeed) internal _feeds;
 
-  constructor(address _governor) Governable(_governor) {}
+  constructor(address _superAdmin, address[] memory _initialAdmins) {
+    if (_superAdmin == address(0)) revert ZeroAddress();
+    // We are setting the super admin role as its own admin so we can transfer it
+    _setRoleAdmin(SUPER_ADMIN_ROLE, SUPER_ADMIN_ROLE);
+    _setRoleAdmin(ADMIN_ROLE, SUPER_ADMIN_ROLE);
+    _setupRole(SUPER_ADMIN_ROLE, _superAdmin);
+    for (uint256 i; i < _initialAdmins.length; i++) {
+      _setupRole(ADMIN_ROLE, _initialAdmins[i]);
+    }
+  }
 
   /// @inheritdoc IChainlinkRegistry
   function getAssignedFeed(address _base, address _quote) external view returns (AssignedFeed memory) {
@@ -16,7 +28,7 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
   }
 
   /// @inheritdoc IChainlinkRegistry
-  function assignFeeds(Feed[] calldata _feedsToAssign) external onlyGovernor {
+  function assignFeeds(Feed[] calldata _feedsToAssign) external onlyRole(ADMIN_ROLE) {
     for (uint256 i = 0; i < _feedsToAssign.length; i++) {
       Feed memory _feed = _feedsToAssign[i];
       _feeds[_getKey(_feed.base, _feed.quote)] = AssignedFeed(AggregatorV2V3Interface(_feed.feed), _isProxy(_feed.feed));
@@ -28,7 +40,7 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
     address _to,
     address _token,
     uint256 _amount
-  ) external onlyGovernor {
+  ) external onlyRole(ADMIN_ROLE) {
     _sendDust(_to, _token, _amount);
   }
 
