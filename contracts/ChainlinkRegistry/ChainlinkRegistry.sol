@@ -52,7 +52,7 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
 
   function _isProxy(address _feed) internal view returns (bool) {
     if (_feed == address(0)) return false;
-    try IAggregatorProxy(_feed).aggregator() returns (address) {
+    try IAggregatorProxy(_feed).aggregator() returns (AggregatorV2V3Interface) {
       return true;
     } catch {
       return false;
@@ -142,7 +142,13 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
 
   /// @inheritdoc FeedRegistryInterface
   function getFeed(address _base, address _quote) external view returns (AggregatorV2V3Interface) {
-    // TODO: Implement
+    AssignedFeed memory _feed = _feeds[_getKey(_base, _quote)];
+    if (address(_feed.feed) == address(0)) revert FeedNotFound();
+    if (_feed.isProxy) {
+      return IAggregatorProxy(address(_feed.feed)).aggregator();
+    } else {
+      return _feed.feed;
+    }
   }
 
   /// @inheritdoc FeedRegistryInterface
@@ -276,5 +282,5 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
 }
 
 interface IAggregatorProxy is AggregatorV2V3Interface {
-  function aggregator() external view returns (address);
+  function aggregator() external view returns (AggregatorV2V3Interface);
 }

@@ -147,6 +147,39 @@ contract('ChainlinkRegistry', () => {
     });
   });
 
+  describe('getFeed', () => {
+    when('no feed is set', () => {
+      then('reverts with message', async () => {
+        await behaviours.txShouldRevertWithMessage({
+          contract: registry,
+          func: 'getFeed',
+          args: [constants.NOT_ZERO_ADDRESS, constants.NOT_ZERO_ADDRESS],
+          message: 'FeedNotFound',
+        });
+      });
+    });
+    when('proxy feed is set', () => {
+      given(async () => {
+        feed.aggregator.returns(constants.NOT_ZERO_ADDRESS);
+        await registry.connect(admin).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
+      });
+      then('the underlying aggregator is returned', async () => {
+        const returnedFeed = await registry.getFeed(LINK, USD);
+        expect(returnedFeed).to.equal(constants.NOT_ZERO_ADDRESS);
+      });
+    });
+    when('non-proxy feed is set', () => {
+      given(async () => {
+        feed.aggregator.reverts();
+        await registry.connect(admin).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
+      });
+      then('the stored feed is returned', async () => {
+        const returnedFeed = await registry.getFeed(LINK, USD);
+        expect(returnedFeed).to.equal(feed.address);
+      });
+    });
+  });
+
   redirectTest({
     method: 'decimals',
     args: () => [LINK, USD],
