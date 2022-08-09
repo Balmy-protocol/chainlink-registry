@@ -59,22 +59,22 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
     }
   }
 
-  /// @inheritdoc IFeedRegistry
+  /// @inheritdoc FeedRegistryInterface
   function decimals(address _base, address _quote) external view returns (uint8) {
     return _getAssignedFeedOrFail(_base, _quote).decimals();
   }
 
-  /// @inheritdoc IFeedRegistry
+  /// @inheritdoc FeedRegistryInterface
   function description(address _base, address _quote) external view returns (string memory) {
     return _getAssignedFeedOrFail(_base, _quote).description();
   }
 
-  /// @inheritdoc IFeedRegistry
+  /// @inheritdoc FeedRegistryInterface
   function version(address _base, address _quote) external view returns (uint256) {
     return _getAssignedFeedOrFail(_base, _quote).version();
   }
 
-  /// @inheritdoc IFeedRegistry
+  /// @inheritdoc FeedRegistryInterface
   function latestRoundData(address _base, address _quote)
     external
     view
@@ -89,6 +89,7 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
     return _getAssignedFeedOrFail(_base, _quote).latestRoundData();
   }
 
+  /// @inheritdoc FeedRegistryInterface
   function getRoundData(
     address _base,
     address _quote,
@@ -107,18 +108,22 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
     return _getAssignedFeedOrFail(_base, _quote).getRoundData(_roundId);
   }
 
+  /// @inheritdoc FeedRegistryInterface
   function latestAnswer(address _base, address _quote) external view returns (int256) {
     return _getAssignedFeedOrFail(_base, _quote).latestAnswer();
   }
 
+  /// @inheritdoc FeedRegistryInterface
   function latestTimestamp(address _base, address _quote) external view returns (uint256) {
     return _getAssignedFeedOrFail(_base, _quote).latestTimestamp();
   }
 
+  /// @inheritdoc FeedRegistryInterface
   function latestRound(address _base, address _quote) external view returns (uint256) {
     return _getAssignedFeedOrFail(_base, _quote).latestRound();
   }
 
+  /// @inheritdoc FeedRegistryInterface
   function getAnswer(
     address _base,
     address _quote,
@@ -135,8 +140,138 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
     return _getAssignedFeedOrFail(_base, _quote).getTimestamp(_roundId);
   }
 
+  /// @inheritdoc FeedRegistryInterface
+  function getFeed(address _base, address _quote) external view returns (AggregatorV2V3Interface) {
+    // TODO: Implement
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function getPhaseFeed(
+    address,
+    address,
+    uint16
+  ) external pure returns (AggregatorV2V3Interface) {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function isFeedEnabled(address) external pure returns (bool) {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function getPhase(
+    address,
+    address,
+    uint16
+  ) external pure returns (Phase memory) {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function getRoundFeed(
+    address,
+    address,
+    uint80
+  ) external pure returns (AggregatorV2V3Interface) {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function getPhaseRange(
+    address,
+    address,
+    uint16
+  ) external pure returns (uint80, uint80) {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function getPreviousRoundId(
+    address,
+    address,
+    uint80
+  ) external pure returns (uint80) {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function getNextRoundId(
+    address,
+    address,
+    uint80
+  ) external pure returns (uint80) {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function proposeFeed(
+    address,
+    address,
+    address
+  ) external pure {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function confirmFeed(
+    address,
+    address,
+    address
+  ) external pure {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function getProposedFeed(address, address) external pure returns (AggregatorV2V3Interface) {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function proposedGetRoundData(
+    address,
+    address,
+    uint80
+  )
+    external
+    pure
+    returns (
+      uint80,
+      int256,
+      uint256,
+      uint256,
+      uint80
+    )
+  {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function proposedLatestRoundData(address, address)
+    external
+    pure
+    returns (
+      uint80,
+      int256,
+      uint256,
+      uint256,
+      uint80
+    )
+  {
+    _throwNotSupported();
+  }
+
+  /// @inheritdoc FeedRegistryInterface
+  function getCurrentPhaseId(address, address) external pure returns (uint16) {
+    _throwNotSupported();
+  }
+
   function _getKey(address _base, address _quote) internal pure returns (bytes32) {
     return keccak256(abi.encodePacked(_base, _quote));
+  }
+
+  function _throwNotSupported() internal pure {
+    revert FunctionNotSupported();
   }
 }
 
