@@ -2,7 +2,6 @@
 pragma solidity >=0.8.7 <0.9.0;
 
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol';
-import './utils/IGovernable.sol';
 import './utils/ICollectableDust.sol';
 
 interface IFeedRegistry {
@@ -48,7 +47,7 @@ interface IFeedRegistry {
     );
 }
 
-interface IChainlinkRegistry is IFeedRegistry, IGovernable, ICollectableDust {
+interface IChainlinkRegistry is IFeedRegistry, ICollectableDust {
   /// @notice A Chainlink feed
   struct Feed {
     address base;
@@ -66,6 +65,9 @@ interface IChainlinkRegistry is IFeedRegistry, IGovernable, ICollectableDust {
 
   /// @notice Thrown when trying to execute a call with a base and quote that don't have a feed assigned
   error FeedNotFound();
+
+  /// @notice Thrown when one of the parameters is a zero address
+  error ZeroAddress();
 
   /**
    * @notice Emitted when fees are modified

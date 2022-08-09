@@ -6,8 +6,7 @@ import '@typechain/hardhat';
 import '@typechain/hardhat/dist/type-extensions';
 import { removeConsoleLog } from 'hardhat-preprocessor';
 import 'hardhat-gas-reporter';
-import 'hardhat-contract-sizer';
-import 'hardhat-deploy';
+import '@0xged/hardhat-deploy';
 import 'solidity-coverage';
 import './tasks/npm-publish-clean-typechain';
 import { HardhatUserConfig, MultiSolcUserConfig, NetworksUserConfig } from 'hardhat/types';
@@ -26,63 +25,50 @@ const networks: NetworksUserConfig = process.env.TEST
           enabled: process.env.FORK ? true : false,
           url: getNodeUrl('mainnet'),
         },
-        tags: ['test', 'local'],
       },
       localhost: {
         url: getNodeUrl('localhost'),
-        live: false,
         accounts: accounts('localhost'),
-        tags: ['local'],
       },
       rinkeby: {
         url: getNodeUrl('rinkeby'),
         accounts: accounts('rinkeby'),
-        tags: ['staging'],
       },
       ropsten: {
         url: getNodeUrl('ropsten'),
         accounts: accounts('ropsten'),
-        tags: ['staging'],
       },
       kovan: {
         url: getNodeUrl('kovan'),
         accounts: accounts('kovan'),
-        tags: ['staging'],
       },
       goerli: {
         url: getNodeUrl('goerli'),
         accounts: accounts('goerli'),
-        tags: ['staging'],
       },
       mainnet: {
         url: getNodeUrl('mainnet'),
         accounts: accounts('mainnet'),
-        tags: ['production'],
       },
       arbitrum: {
         url: getNodeUrl('arbitrum'),
         accounts: accounts('arbitrum'),
-        tags: ['production'],
       },
       optimism: {
         url: 'https://mainnet.optimism.io',
         accounts: accounts('optimism'),
-        tags: ['production'],
       },
       'optimism-kovan': {
         url: 'https://kovan.optimism.io',
         accounts: accounts('optimism-kovan'),
-        tags: ['staging'],
       },
       mumbai: {
         url: 'https://rpc-mumbai.matic.today',
         accounts: accounts('mumbai'),
-        tags: ['staging'],
       },
       polygon: {
         url: 'https://polygon-rpc.com',
         accounts: accounts('polygon'),
-        tags: ['production'],
       },
     };
 
@@ -93,9 +79,8 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
-    governor: {
-      // Gnosis multisigs
-      default: '0x1a00e1E311009E56e3b0B9Ed6F86f5Ce128a1C01',
+    eoaAdmin: '0x1a00e1E311009E56e3b0B9Ed6F86f5Ce128a1C01',
+    msig: {
       ethereum: '0xEC864BE26084ba3bbF3cAAcF8F6961A9263319C4',
       optimism: '0x308810881807189cAe91950888b2cB73A1CC5920',
       polygon: '0xCe9F6991b48970d6c9Ef99Fffb112359584488e3',
@@ -106,7 +91,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.10',
+        version: '0.8.16',
         settings: {
           optimizer: {
             enabled: true,

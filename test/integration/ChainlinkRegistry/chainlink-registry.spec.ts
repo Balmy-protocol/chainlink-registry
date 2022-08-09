@@ -6,6 +6,7 @@ import { AggregatorV2V3Interface, ChainlinkRegistry } from '@typechained';
 import FEED_ABI from '@chainlink/contracts/abi/v0.8/AggregatorV3Interface.json';
 import { given, then, when } from '@test-utils/bdd';
 import { expect } from 'chai';
+import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory/typechained';
 
 type Keys = keyof AggregatorV2V3Interface['functions'] & keyof ChainlinkRegistry['functions'];
 type Token = { address: string; name: string };
@@ -27,24 +28,30 @@ const PAIRS = [
 const REDIRECT_FUNCTIONS: Keys[] = ['decimals', 'description', 'version', 'latestRoundData'];
 
 describe('ChainlinkRegistry', () => {
-  let governor: JsonRpcSigner;
+  let admin: JsonRpcSigner;
   let registry: ChainlinkRegistry;
   let snapshotId: string;
 
   before(async () => {
-    await evm.reset({
-      network: 'polygon',
-      skipHardhatDeployFork: true,
-    });
-    await deployments.run(['FeedRegistry'], {
+    await evm.reset({ network: 'polygon' });
+    const { deployer, eoaAdmin: eoaAdminAddress, msig: msigAddress } = await getNamedAccounts();
+    const eoaAdmin = await wallet.impersonate(eoaAdminAddress);
+    admin = await wallet.impersonate(msigAddress);
+    await ethers.provider.send('hardhat_setBalance', [eoaAdminAddress, '0xfffffffffffffffff']);
+    await ethers.provider.send('hardhat_setBalance', [msigAddress, '0xfffffffffffffffff']);
+
+    // Give deployer role to our deployer address
+    const deterministicFactory = await ethers.getContractAt<DeterministicFactory>(
+      DeterministicFactory__factory.abi,
+      '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'
+    );
+    await deterministicFactory.connect(eoaAdmin).grantRole(await deterministicFactory.DEPLOYER_ROLE(), deployer);
+    await deployments.run('ChainlinkFeedRegistry', {
       resetMemory: true,
       deletePreviousDeployments: false,
       writeDeploymentsToFiles: false,
     });
-    registry = await ethers.getContract('FeedRegistry');
-    const namedAccounts = await getNamedAccounts();
-    governor = await wallet.impersonate(namedAccounts.governor);
-    await ethers.provider.send('hardhat_setBalance', [namedAccounts.governor, '0xffffffffffffffff']);
+    registry = await ethers.getContract('ChainlinkFeedRegistry');
     snapshotId = await snapshot.take();
   });
 
@@ -57,7 +64,7 @@ describe('ChainlinkRegistry', () => {
       let feed: AggregatorV2V3Interface;
       given(async () => {
         feed = await ethers.getContractAt(FEED_ABI, feedAddress);
-        await registry.connect(governor).assignFeeds([{ base: base.address, quote: quote.address, feed: feedAddress }]);
+        await registry.connect(admin).assignFeeds([{ base: base.address, quote: quote.address, feed: feedAddress }]);
       });
       for (const method of REDIRECT_FUNCTIONS) {
         whenFunctionIsCalledThenResultIsTheSameInTheFeedAndTheRegistry({
