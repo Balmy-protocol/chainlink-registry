@@ -207,6 +207,71 @@ contract('ChainlinkRegistry', () => {
     returnsWhenMocked: BigNumber.from(50),
   });
 
+  notSupportedTest({
+    method: 'getPhaseFeed',
+    args: () => [LINK, USD, 1234],
+  });
+
+  notSupportedTest({
+    method: 'isFeedEnabled',
+    args: () => [constants.NOT_ZERO_ADDRESS],
+  });
+
+  notSupportedTest({
+    method: 'getPhase',
+    args: () => [LINK, USD, 1234],
+  });
+
+  notSupportedTest({
+    method: 'getRoundFeed',
+    args: () => [LINK, USD, 1234],
+  });
+
+  notSupportedTest({
+    method: 'getPhaseRange',
+    args: () => [LINK, USD, 1234],
+  });
+
+  notSupportedTest({
+    method: 'getPreviousRoundId',
+    args: () => [LINK, USD, 1234],
+  });
+
+  notSupportedTest({
+    method: 'getNextRoundId',
+    args: () => [LINK, USD, 1234],
+  });
+
+  notSupportedTest({
+    method: 'proposeFeed',
+    args: () => [LINK, USD, constants.NOT_ZERO_ADDRESS],
+  });
+
+  notSupportedTest({
+    method: 'confirmFeed',
+    args: () => [LINK, USD, constants.NOT_ZERO_ADDRESS],
+  });
+
+  notSupportedTest({
+    method: 'getProposedFeed',
+    args: () => [LINK, USD],
+  });
+
+  notSupportedTest({
+    method: 'proposedGetRoundData',
+    args: () => [LINK, USD, 1234],
+  });
+
+  notSupportedTest({
+    method: 'proposedLatestRoundData',
+    args: () => [LINK, USD],
+  });
+
+  notSupportedTest({
+    method: 'getCurrentPhaseId',
+    args: () => [LINK, USD],
+  });
+
   /**
    * This test makes sure that when a method is called and the feed is not set, then the call reverts.
    * However, when the method is called and there is a feed set, then the return value is just redirected
@@ -250,6 +315,26 @@ contract('ChainlinkRegistry', () => {
         });
         then('return value from feed is returned through registry', async () => {
           expect(result).to.eql(returnValue);
+        });
+      });
+    });
+  }
+  function notSupportedTest<Key extends keyof ChainlinkRegistry['functions'] & string>({
+    method,
+    args,
+  }: {
+    method: Key;
+    args: () => Parameters<ChainlinkRegistry['functions'][Key]>;
+  }) {
+    describe(method, () => {
+      when(`calling ${method} is called`, () => {
+        then('reverts with message', async () => {
+          await behaviours.txShouldRevertWithMessage({
+            contract: registry,
+            func: method,
+            args: args(),
+            message: 'FunctionNotSupported',
+          });
         });
       });
     });
