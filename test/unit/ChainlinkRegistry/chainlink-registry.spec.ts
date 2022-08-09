@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { behaviours, constants } from '@test-utils';
 import { contract, given, then, when } from '@test-utils/bdd';
 import { snapshot } from '@test-utils/evm';
-import { AggregatorV3Interface, ChainlinkRegistry, ChainlinkRegistry__factory, IERC20 } from '@typechained';
+import { AggregatorV3Interface, ChainlinkRegistry, ChainlinkRegistry__factory, IAggregatorProxy, IERC20 } from '@typechained';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
@@ -17,7 +17,7 @@ contract('ChainlinkRegistry', () => {
   const USD = '0x0000000000000000000000000000000000000348';
 
   let governor: SignerWithAddress;
-  let feed: FakeContract<AggregatorV3Interface>;
+  let feed: FakeContract<IAggregatorProxy>;
   let registry: ChainlinkRegistry;
   let token: FakeContract<IERC20>;
   let snapshotId: string;
@@ -28,7 +28,7 @@ contract('ChainlinkRegistry', () => {
       'contracts/ChainlinkRegistry/ChainlinkRegistry.sol:ChainlinkRegistry'
     );
     registry = await factory.deploy(governor.address);
-    feed = await smock.fake('AggregatorV3Interface');
+    feed = await smock.fake('IAggregatorProxy');
     token = await smock.fake('IERC20');
     token.transfer.returns(true);
     snapshotId = await snapshot.take();
@@ -38,27 +38,7 @@ contract('ChainlinkRegistry', () => {
     await snapshot.revert(snapshotId);
   });
 
-  describe('setFeedProxies', () => {
-    when('zero address is sent for base address', () => {
-      then('reverts with message', async () => {
-        await behaviours.txShouldRevertWithMessage({
-          contract: registry.connect(governor),
-          func: 'assignFeeds',
-          args: [[{ base: constants.ZERO_ADDRESS, quote: USD, feed: feed.address }]],
-          message: 'ZeroAddress',
-        });
-      });
-    });
-    when('zero address is sent for quote address', () => {
-      then('reverts with message', async () => {
-        await behaviours.txShouldRevertWithMessage({
-          contract: registry.connect(governor),
-          func: 'assignFeeds',
-          args: [[{ base: LINK, quote: constants.ZERO_ADDRESS, feed: feed.address }]],
-          message: 'ZeroAddress',
-        });
-      });
-    });
+  describe('assignFeeds', () => {
     when('setting a feed', () => {
       let tx: TransactionResponse;
       given(async () => {
@@ -73,6 +53,20 @@ contract('ChainlinkRegistry', () => {
         await expectEventToHaveBeenEmitted(tx, feed.address);
       });
     });
+    when('setting a feed that is not a proxy', () => {
+      let tx: TransactionResponse;
+      given(async () => {
+        tx = await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: registry.address }]);
+      });
+      then('it is set correctly', async () => {
+        const assignedFeed = await registry.getAssignedFeed(LINK, USD);
+        expect(assignedFeed.feed).to.equal(registry.address);
+        expect(assignedFeed.isProxy).to.equal(false);
+      });
+      then('event is emitted', async () => {
+        await expectEventToHaveBeenEmitted(tx, registry.address);
+      });
+    });
     when('removing a feed', () => {
       let tx: TransactionResponse;
       given(async () => {
@@ -82,6 +76,7 @@ contract('ChainlinkRegistry', () => {
       then('feed is removed correctly', async () => {
         const assignedFeed = await registry.getAssignedFeed(LINK, USD);
         expect(assignedFeed.feed).to.equal(constants.ZERO_ADDRESS);
+        expect(assignedFeed.isProxy).to.equal(false);
       });
       then('event is emitted', async () => {
         await expectEventToHaveBeenEmitted(tx, constants.ZERO_ADDRESS);

@@ -64,9 +64,6 @@ interface IChainlinkRegistry is IFeedRegistry, IGovernable, ICollectableDust {
     bool isProxy;
   }
 
-  /// @notice Thrown when one of the parameters is a zero address
-  error ZeroAddress();
-
   /// @notice Thrown when trying to execute a call with a base and quote that don't have a feed assigned
   error FeedNotFound();
 

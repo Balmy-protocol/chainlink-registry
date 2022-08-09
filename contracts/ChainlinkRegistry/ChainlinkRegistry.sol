@@ -19,8 +19,7 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
   function assignFeeds(Feed[] calldata _feedsToAssign) external onlyGovernor {
     for (uint256 i = 0; i < _feedsToAssign.length; i++) {
       Feed memory _feed = _feedsToAssign[i];
-      if (address(_feed.base) == address(0) || address(_feed.quote) == address(0)) revert ZeroAddress();
-      _feeds[_getKey(_feed.base, _feed.quote)] = AssignedFeed(AggregatorV2V3Interface(_feed.feed), true);
+      _feeds[_getKey(_feed.base, _feed.quote)] = AssignedFeed(AggregatorV2V3Interface(_feed.feed), _isProxy(_feed.feed));
     }
     emit FeedsModified(_feedsToAssign);
   }
@@ -37,6 +36,15 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
     AggregatorV2V3Interface _feed = _feeds[_getKey(_base, _quote)].feed;
     if (address(_feed) == address(0)) revert FeedNotFound();
     return _feed;
+  }
+
+  function _isProxy(address _feed) internal view returns (bool) {
+    if (_feed == address(0)) return false;
+    try IAggregatorProxy(_feed).aggregator() returns (address) {
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /// @inheritdoc IFeedRegistry
@@ -72,4 +80,8 @@ contract ChainlinkRegistry is Governable, CollectableDust, IChainlinkRegistry {
   function _getKey(address _base, address _quote) internal pure returns (bytes32) {
     return keccak256(abi.encodePacked(_base, _quote));
   }
+}
+
+interface IAggregatorProxy is AggregatorV2V3Interface {
+  function aggregator() external view returns (address);
 }
