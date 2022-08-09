@@ -3,7 +3,7 @@ import { JsonRpcSigner } from '@ethersproject/providers';
 import { wallet } from '@test-utils';
 import evm, { snapshot } from '@test-utils/evm';
 import { AggregatorV2V3Interface, ChainlinkRegistry } from '@typechained';
-import FEED_ABI from '@chainlink/contracts/abi/v0.8/AggregatorV3Interface.json';
+import FEED_ABI from '@chainlink/contracts/abi/v0.8/AggregatorV2V3Interface.json';
 import { given, then, when } from '@test-utils/bdd';
 import { expect } from 'chai';
 import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory/typechained';
