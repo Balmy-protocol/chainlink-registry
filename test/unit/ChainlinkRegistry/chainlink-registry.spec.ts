@@ -3,7 +3,14 @@ import { ethers } from 'hardhat';
 import { behaviours, constants } from '@test-utils';
 import { contract, given, then, when } from '@test-utils/bdd';
 import { snapshot } from '@test-utils/evm';
-import { AggregatorV3Interface, ChainlinkRegistry, ChainlinkRegistry__factory, IAggregatorProxy, IERC20 } from '@typechained';
+import {
+  AggregatorV2V3Interface,
+  AggregatorV3Interface,
+  ChainlinkRegistry,
+  ChainlinkRegistry__factory,
+  IAggregatorProxy,
+  IERC20,
+} from '@typechained';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
@@ -142,22 +149,62 @@ contract('ChainlinkRegistry', () => {
 
   redirectTest({
     method: 'decimals',
+    args: () => [LINK, USD],
     returnsWhenMocked: 18,
   });
 
   redirectTest({
     method: 'description',
+    args: () => [LINK, USD],
     returnsWhenMocked: 'some random description',
   });
 
   redirectTest({
     method: 'version',
+    args: () => [LINK, USD],
     returnsWhenMocked: BigNumber.from(2),
   });
 
   redirectTest({
     method: 'latestRoundData',
+    args: () => [LINK, USD],
     returnsWhenMocked: [BigNumber.from(1), BigNumber.from(2), BigNumber.from(3), BigNumber.from(4), BigNumber.from(5)],
+  });
+
+  redirectTest({
+    method: 'getRoundData',
+    args: () => [LINK, USD, 1000],
+    returnsWhenMocked: [BigNumber.from(1), BigNumber.from(2), BigNumber.from(3), BigNumber.from(4), BigNumber.from(5)],
+  });
+
+  redirectTest({
+    method: 'latestAnswer',
+    args: () => [LINK, USD],
+    returnsWhenMocked: BigNumber.from(10),
+  });
+
+  redirectTest({
+    method: 'latestTimestamp',
+    args: () => [LINK, USD],
+    returnsWhenMocked: BigNumber.from(20),
+  });
+
+  redirectTest({
+    method: 'latestRound',
+    args: () => [LINK, USD],
+    returnsWhenMocked: BigNumber.from(30),
+  });
+
+  redirectTest({
+    method: 'getAnswer',
+    args: () => [LINK, USD, 1234],
+    returnsWhenMocked: BigNumber.from(40),
+  });
+
+  redirectTest({
+    method: 'getTimestamp',
+    args: () => [LINK, USD, 1234],
+    returnsWhenMocked: BigNumber.from(50),
   });
 
   /**
@@ -167,36 +214,48 @@ contract('ChainlinkRegistry', () => {
    */
   function redirectTest<Key extends keyof Functions, ReturnValue extends Awaited<ReturnType<Functions[Key]>>>({
     method,
+    args,
     returnsWhenMocked: returnValue,
   }: {
     method: Key;
+    args: () => Parameters<Functions[Key]>;
     returnsWhenMocked: Arrayed<ReturnValue> | ReturnValue;
   }) {
     describe(method, () => {
       when('feed is not set', () => {
         then(`calling ${method} will revert with message`, async () => {
+          const [, ...other] = args();
           await behaviours.txShouldRevertWithMessage({
             contract: registry,
             func: method,
-            args: [constants.NOT_ZERO_ADDRESS, USD],
+            args: [constants.NOT_ZERO_ADDRESS, ...other],
             message: 'FeedNotFound',
           });
         });
       });
       when('feed is set', () => {
+        let result: any;
         given(async () => {
           await registry.connect(admin).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
           feed[method].returns(returnValue);
+          result = await (registry[method] as any)(...args());
+        });
+        then('feed is called correctly', () => {
+          const redirectedArgs = args().splice(2);
+          if (redirectedArgs.length > 0) {
+            expect(feed[method]).to.have.been.calledOnceWith(...redirectedArgs);
+          } else {
+            expect(feed[method]).to.have.been.calledOnce;
+          }
         });
         then('return value from feed is returned through registry', async () => {
-          const result = await registry[method](LINK, USD);
           expect(result).to.eql(returnValue);
         });
       });
     });
   }
-  type Keys = keyof AggregatorV3Interface['functions'] & keyof ChainlinkRegistry['functions'];
-  type Functions = Pick<AggregatorV3Interface['functions'] & ChainlinkRegistry['functions'], Keys>;
+  type Keys = keyof AggregatorV2V3Interface['functions'] & keyof ChainlinkRegistry['functions'];
+  type Functions = Pick<AggregatorV2V3Interface['functions'] & ChainlinkRegistry['functions'], Keys>;
   type Awaited<T> = T extends PromiseLike<infer U> ? U : T;
   type Arrayed<T> = T extends Array<infer U> ? U : T;
 });

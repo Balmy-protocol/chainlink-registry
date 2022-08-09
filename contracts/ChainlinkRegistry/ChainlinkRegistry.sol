@@ -89,6 +89,52 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
     return _getAssignedFeedOrFail(_base, _quote).latestRoundData();
   }
 
+  function getRoundData(
+    address _base,
+    address _quote,
+    uint80 _roundId
+  )
+    external
+    view
+    returns (
+      uint80,
+      int256,
+      uint256,
+      uint256,
+      uint80
+    )
+  {
+    return _getAssignedFeedOrFail(_base, _quote).getRoundData(_roundId);
+  }
+
+  function latestAnswer(address _base, address _quote) external view returns (int256) {
+    return _getAssignedFeedOrFail(_base, _quote).latestAnswer();
+  }
+
+  function latestTimestamp(address _base, address _quote) external view returns (uint256) {
+    return _getAssignedFeedOrFail(_base, _quote).latestTimestamp();
+  }
+
+  function latestRound(address _base, address _quote) external view returns (uint256) {
+    return _getAssignedFeedOrFail(_base, _quote).latestRound();
+  }
+
+  function getAnswer(
+    address _base,
+    address _quote,
+    uint256 _roundId
+  ) external view returns (int256) {
+    return _getAssignedFeedOrFail(_base, _quote).getAnswer(_roundId);
+  }
+
+  function getTimestamp(
+    address _base,
+    address _quote,
+    uint256 _roundId
+  ) external view returns (uint256) {
+    return _getAssignedFeedOrFail(_base, _quote).getTimestamp(_roundId);
+  }
+
   function _getKey(address _base, address _quote) internal pure returns (bytes32) {
     return keccak256(abi.encodePacked(_base, _quote));
   }
