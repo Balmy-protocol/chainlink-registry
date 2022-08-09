@@ -1,6 +1,6 @@
 {
   "name": "@mean-finance/chainlink-registry",
-  "version": "2.0.0-rc1",
+  "version": "2.0.0-rc4",
   "description": "A Chainlink Feed Registry by mean.finance",
   "keywords": [
     "ethereum",
@@ -24,6 +24,8 @@
     "contracts/interfaces",
     "artifacts/contracts/interfaces/**/*.json",
     "artifacts/contracts/ChainlinkRegistry/**/*.json",
+    "artifacts/@chainlink/**/*.json",
+    "!artifacts/@chainlink/**/*.dbg.json",
     "!artifacts/contracts/**/**/*.dbg.json",
     "typechained",
     "!typechained/**/*Mock*",
