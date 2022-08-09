@@ -17,7 +17,7 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
     _setRoleAdmin(SUPER_ADMIN_ROLE, SUPER_ADMIN_ROLE);
     _setRoleAdmin(ADMIN_ROLE, SUPER_ADMIN_ROLE);
     _setupRole(SUPER_ADMIN_ROLE, _superAdmin);
-    for (uint256 i; i < _initialAdmins.length; i++) {
+    for (uint256 i = 0; i < _initialAdmins.length; i++) {
       _setupRole(ADMIN_ROLE, _initialAdmins[i]);
     }
   }
