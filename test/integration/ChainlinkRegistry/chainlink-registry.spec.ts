@@ -8,7 +8,6 @@ import { given, then, when } from '@test-utils/bdd';
 import { expect } from 'chai';
 import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory/typechained';
 
-type Keys = keyof AggregatorV2V3Interface['functions'] & keyof ChainlinkRegistry['functions'];
 type Token = { address: string; name: string };
 
 const LINK = { address: '0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39', name: 'LINK' };
@@ -25,7 +24,9 @@ const PAIRS = [
   { base: LINK, quote: ETH, feed: '0xb77fa460604b9C6435A235D057F7D319AC83cb53' },
 ];
 
-const REDIRECT_FUNCTIONS: Keys[] = ['decimals', 'description', 'version', 'latestRoundData'];
+// We are not testing every function, since we are already doing this in the unit tests
+const REDIRECT_FUNCTIONS = ['decimals', 'description', 'version', 'latestRoundData', 'latestAnswer', 'latestRound'] as const;
+type Functions = typeof REDIRECT_FUNCTIONS[number];
 
 describe('ChainlinkRegistry', () => {
   let admin: JsonRpcSigner;
@@ -55,7 +56,7 @@ describe('ChainlinkRegistry', () => {
     snapshotId = await snapshot.take();
   });
 
-  beforeEach('Deploy and configure', async () => {
+  beforeEach(async () => {
     await snapshot.revert(snapshotId);
   });
 
@@ -83,7 +84,7 @@ describe('ChainlinkRegistry', () => {
     quote,
     feed,
   }: {
-    method: Keys;
+    method: Functions;
     base: Token;
     quote: Token;
     feed: () => AggregatorV2V3Interface;
