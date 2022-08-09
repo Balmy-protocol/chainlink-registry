@@ -43,7 +43,7 @@ contract('ChainlinkRegistry', () => {
       then('reverts with message', async () => {
         await behaviours.txShouldRevertWithMessage({
           contract: registry.connect(governor),
-          func: 'setFeedProxies',
+          func: 'assignFeeds',
           args: [[{ base: constants.ZERO_ADDRESS, quote: USD, feed: feed.address }]],
           message: 'ZeroAddress',
         });
@@ -53,7 +53,7 @@ contract('ChainlinkRegistry', () => {
       then('reverts with message', async () => {
         await behaviours.txShouldRevertWithMessage({
           contract: registry.connect(governor),
-          func: 'setFeedProxies',
+          func: 'assignFeeds',
           args: [[{ base: LINK, quote: constants.ZERO_ADDRESS, feed: feed.address }]],
           message: 'ZeroAddress',
         });
@@ -62,10 +62,12 @@ contract('ChainlinkRegistry', () => {
     when('setting a feed', () => {
       let tx: TransactionResponse;
       given(async () => {
-        tx = await registry.connect(governor).setFeedProxies([{ base: LINK, quote: USD, feed: feed.address }]);
+        tx = await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
       });
       then('it is set correctly', async () => {
-        expect(await registry.getFeedProxy(LINK, USD)).to.equal(feed.address);
+        const assignedFeed = await registry.getAssignedFeed(LINK, USD);
+        expect(assignedFeed.feed).to.equal(feed.address);
+        expect(assignedFeed.isProxy).to.equal(true);
       });
       then('event is emitted', async () => {
         await expectEventToHaveBeenEmitted(tx, feed.address);
@@ -74,11 +76,12 @@ contract('ChainlinkRegistry', () => {
     when('removing a feed', () => {
       let tx: TransactionResponse;
       given(async () => {
-        await registry.connect(governor).setFeedProxies([{ base: LINK, quote: USD, feed: feed.address }]);
-        tx = await registry.connect(governor).setFeedProxies([{ base: LINK, quote: USD, feed: constants.ZERO_ADDRESS }]);
+        await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
+        tx = await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: constants.ZERO_ADDRESS }]);
       });
       then('feed is removed correctly', async () => {
-        await expect(registry.getFeedProxy(LINK, USD)).to.be.revertedWith('FeedNotFound');
+        const assignedFeed = await registry.getAssignedFeed(LINK, USD);
+        expect(assignedFeed.feed).to.equal(constants.ZERO_ADDRESS);
       });
       then('event is emitted', async () => {
         await expectEventToHaveBeenEmitted(tx, constants.ZERO_ADDRESS);
@@ -86,7 +89,7 @@ contract('ChainlinkRegistry', () => {
     });
     behaviours.shouldBeExecutableOnlyByGovernor({
       contract: () => registry,
-      funcAndSignature: 'setFeedProxies',
+      funcAndSignature: 'assignFeeds',
       params: () => [[{ base: constants.NOT_ZERO_ADDRESS, quote: constants.NOT_ZERO_ADDRESS, feed: constants.NOT_ZERO_ADDRESS }]],
       governor: () => governor,
     });
@@ -141,7 +144,7 @@ contract('ChainlinkRegistry', () => {
     returnsWhenMocked: Arrayed<ReturnValue> | ReturnValue;
   }) {
     describe(method, () => {
-      when('feed proxy is not set', () => {
+      when('feed is not set', () => {
         then(`calling ${method} will revert with message`, async () => {
           await behaviours.txShouldRevertWithMessage({
             contract: registry,
@@ -151,12 +154,12 @@ contract('ChainlinkRegistry', () => {
           });
         });
       });
-      when('feed registry is set', () => {
+      when('feed is set', () => {
         given(async () => {
-          await registry.connect(governor).setFeedProxies([{ base: LINK, quote: USD, feed: feed.address }]);
+          await registry.connect(governor).assignFeeds([{ base: LINK, quote: USD, feed: feed.address }]);
           feed[method].returns(returnValue);
         });
-        then('return value from feed proxy is returned through registry', async () => {
+        then('return value from feed is returned through registry', async () => {
           const result = await registry[method](LINK, USD);
           expect(result).to.eql(returnValue);
         });

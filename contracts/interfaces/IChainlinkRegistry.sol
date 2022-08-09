@@ -56,6 +56,14 @@ interface IChainlinkRegistry is IFeedRegistry, IGovernable, ICollectableDust {
     address feed;
   }
 
+  /// @notice A feed that was assigned
+  struct AssignedFeed {
+    // The feed
+    AggregatorV2V3Interface feed;
+    // Whether the feed is a proxy or the actual aggregator
+    bool isProxy;
+  }
+
   /// @notice Thrown when one of the parameters is a zero address
   error ZeroAddress();
 
@@ -69,18 +77,18 @@ interface IChainlinkRegistry is IFeedRegistry, IGovernable, ICollectableDust {
   event FeedsModified(Feed[] feeds);
 
   /**
-   * @notice Returns the proxy feed for a specific quote and base
-   * @dev Will revert with `FeedNotFound` if no feed is found for the given base and quote
+   * @notice Returns the assigned feed for a specific quote and base
    * @param base The base asset address
    * @param quote The quote asset address
-   * @return The feed's address
+   * @return The assigned feed (or zero-ed if none was assigned)
    */
-  function getFeedProxy(address base, address quote) external view returns (AggregatorV2V3Interface);
+  function getAssignedFeed(address base, address quote) external view returns (AssignedFeed memory);
 
   /**
    * @notice Sets or deletes feeds for specific quotes and bases
    * @dev A feed's address could be set to the zero address to delete a feed
-   * @param feeds The feeds to set
+   *      Can only be set by admins
+   * @param feedsToAssign The feeds to set
    */
-  function setFeedProxies(Feed[] calldata feeds) external;
+  function assignFeeds(Feed[] calldata feedsToAssign) external;
 }
