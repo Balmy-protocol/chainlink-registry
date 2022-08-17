@@ -132,6 +132,7 @@ contract ChainlinkRegistry is AccessControl, CollectableDust, IChainlinkRegistry
     return _getAssignedFeedOrFail(_base, _quote).getAnswer(_roundId);
   }
 
+  /// @inheritdoc FeedRegistryInterface
   function getTimestamp(
     address _base,
     address _quote,
