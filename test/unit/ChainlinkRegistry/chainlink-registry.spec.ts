@@ -3,14 +3,7 @@ import { ethers } from 'hardhat';
 import { behaviours, constants } from '@test-utils';
 import { contract, given, then, when } from '@test-utils/bdd';
 import { snapshot } from '@test-utils/evm';
-import {
-  AggregatorV2V3Interface,
-  AggregatorV3Interface,
-  ChainlinkRegistry,
-  ChainlinkRegistry__factory,
-  IAggregatorProxy,
-  IERC20,
-} from '@typechained';
+import { AggregatorV2V3Interface, ChainlinkRegistry, ChainlinkRegistry__factory, IAggregatorProxy, IERC20 } from '@typechained';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { TransactionResponse } from '@ethersproject/abstract-provider';
@@ -347,7 +340,7 @@ contract('ChainlinkRegistry', () => {
           }
         });
         then('return value from feed is returned through registry', async () => {
-          expect(result).to.eql(returnValue);
+          expect(result).to.be.eq(returnValue);
         });
       });
     });
