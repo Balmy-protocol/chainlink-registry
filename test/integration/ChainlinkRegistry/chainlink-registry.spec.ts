@@ -34,7 +34,10 @@ describe('ChainlinkRegistry', () => {
   let snapshotId: string;
 
   before(async () => {
-    await evm.reset({ network: 'polygon' });
+    await evm.reset({
+      network: 'polygon',
+      blockNumber: 32232727, // We set a block, so that future deployments don't break the deterministic deployment
+    });
     const { deployer, eoaAdmin: eoaAdminAddress, msig: msigAddress } = await getNamedAccounts();
     const eoaAdmin = await wallet.impersonate(eoaAdminAddress);
     admin = await wallet.impersonate(msigAddress);
