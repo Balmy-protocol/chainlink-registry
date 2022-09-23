@@ -1,6 +1,6 @@
 {
   "name": "@mean-finance/chainlink-registry",
-  "version": "2.0.0-rc11",
+  "version": "2.0.0",
   "description": "A Chainlink Feed Registry by mean.finance",
   "keywords": [
     "ethereum",
@@ -30,8 +30,6 @@
     "",
     "!/**/*Mock*",
     "deploy",
-    "deployments",
-    "!deployments/localhost",
     "!.env",
     "!**/.DS_Store"
   ],
