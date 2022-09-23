@@ -7,6 +7,7 @@ import FEED_ABI from '@chainlink/contracts/abi/v0.8/AggregatorV2V3Interface.json
 import { given, then, when } from '@test-utils/bdd';
 import { expect } from 'chai';
 import { DeterministicFactory, DeterministicFactory__factory } from '@mean-finance/deterministic-factory';
+import { address as DETERMINISTIC_FACTORY_ADDRESS } from '@mean-finance/deterministic-factory/deployments/polygon/DeterministicFactory.json';
 
 type Token = { address: string; name: string };
 
@@ -36,20 +37,18 @@ describe('ChainlinkRegistry', () => {
   before(async () => {
     await evm.reset({
       network: 'polygon',
-      blockNumber: 32232727, // We set a block, so that future deployments don't break the deterministic deployment
+      blockNumber: 33391150, // We set a block, so that future deployments don't break the deterministic deployment
     });
-    const { deployer, eoaAdmin: eoaAdminAddress, msig: msigAddress } = await getNamedAccounts();
-    const eoaAdmin = await wallet.impersonate(eoaAdminAddress);
+    const { deployer, msig: msigAddress } = await getNamedAccounts();
     admin = await wallet.impersonate(msigAddress);
-    await ethers.provider.send('hardhat_setBalance', [eoaAdminAddress, '0xfffffffffffffffff']);
     await ethers.provider.send('hardhat_setBalance', [msigAddress, '0xfffffffffffffffff']);
 
     // Give deployer role to our deployer address
     const deterministicFactory = await ethers.getContractAt<DeterministicFactory>(
       DeterministicFactory__factory.abi,
-      '0xbb681d77506df5CA21D2214ab3923b4C056aa3e2'
+      DETERMINISTIC_FACTORY_ADDRESS
     );
-    await deterministicFactory.connect(eoaAdmin).grantRole(await deterministicFactory.DEPLOYER_ROLE(), deployer);
+    await deterministicFactory.connect(admin).grantRole(await deterministicFactory.DEPLOYER_ROLE(), deployer);
     await deployments.run('ChainlinkFeedRegistry', {
       resetMemory: true,
       deletePreviousDeployments: false,
