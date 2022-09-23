@@ -340,7 +340,14 @@ contract('ChainlinkRegistry', () => {
           }
         });
         then('return value from feed is returned through registry', async () => {
-          expect(result).to.be.eq(returnValue);
+          if (Array.isArray(returnValue)) {
+            expect(result).to.have.lengthOf(returnValue.length);
+            for (let i = 0; i < returnValue.length; i++) {
+              expect(result[i]).to.equal(returnValue[i]);
+            }
+          } else {
+            expect(result).to.be.eq(returnValue);
+          }
         });
       });
     });
