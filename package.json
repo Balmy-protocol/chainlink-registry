@@ -1,6 +1,6 @@
 {
   "name": "@mean-finance/chainlink-registry",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A Chainlink Feed Registry by mean.finance",
   "keywords": [
     "ethereum",
@@ -64,7 +64,7 @@
   "dependencies": {
     "@0xged/hardhat-deploy": "0.11.5",
     "@chainlink/contracts": "0.4.2",
-    "@mean-finance/deterministic-factory": "1.6.0",
+    "@mean-finance/deterministic-factory": "1.10.0",
     "@openzeppelin/contracts": "4.7.3"
   },
   "devDependencies": {
