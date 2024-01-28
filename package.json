@@ -65,7 +65,7 @@
     "@0xged/hardhat-deploy": "0.11.5",
     "@chainlink/contracts": "0.4.2",
     "@mean-finance/deterministic-factory": "1.10.0",
-    "@openzeppelin/contracts": "4.7.3"
+    "@openzeppelin/contracts-4.7.3": "npm:@openzeppelin/contracts@4.7.3"
   },
   "devDependencies": {
     "@codechecks/client": "0.1.12",
