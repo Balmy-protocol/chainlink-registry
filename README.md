@@ -1,13 +1,13 @@
 # Chainlink Registry
 
-[![Lint](https://github.com/Mean-Finance/chainlink-registry/actions/workflows/lint.yml/badge.svg)](https://github.com/Mean-Finance/chainlink-registry/actions/workflows/lint.yml)
-[![Tests (unit, integration)](https://github.com/Mean-Finance/chainlink-registry/actions/workflows/tests.yml/badge.svg)](https://github.com/Mean-Finance/chainlink-registry/actions/workflows/tests.yml)
+[![Lint](https://github.com/Balmy-protocol/chainlink-registry/actions/workflows/lint.yml/badge.svg)](https://github.com/Balmy-protocol/chainlink-registry/actions/workflows/lint.yml)
+[![Tests (unit, integration)](https://github.com/Balmy-protocol/chainlink-registry/actions/workflows/tests.yml/badge.svg)](https://github.com/Balmy-protocol/chainlink-registry/actions/workflows/tests.yml)
 
 This repository contains all necessary smart contracts for our own version of [Chainlink's Feed Registry](https://docs.chain.link/docs/feed-registry/). Since they don't have it deployed to all chains, we needed to build and maintain our own.
 
 ## 📖 Docs
 
-Check our docs at [docs.mean.finance](https://docs.mean.finance)
+Check our docs at [docs.balmy.xyx](https://docs.balmy.xyx)
 
 ## 👨‍💻 Development environment
 

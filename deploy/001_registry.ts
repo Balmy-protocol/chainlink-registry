@@ -17,7 +17,7 @@ const deployFunction: DeployFunction = async function (hre: HardhatRuntimeEnviro
     await deployThroughDeterministicFactory({
       deployer,
       name: 'ChainlinkFeedRegistry',
-      salt: 'MF-Chainlink-Feed-Registry-V1',
+      salt: 'B-Chainlink-Feed-Registry-V1',
       contract: 'contracts/ChainlinkRegistry/ChainlinkRegistry.sol:ChainlinkRegistry',
       bytecode,
       constructorArgs: {
